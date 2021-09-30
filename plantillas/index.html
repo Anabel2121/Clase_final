@@ -1,46 +1,66 @@
-<!DOCTYPE html>
-<html>
-<head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+import paho.mqtt.client as mqtt
+import time
+import random
 
-<title>EMBEBIDOS</title>
-</head>
+a = 0
+b = 0
 
-	<body bgcolor="lightslategray">
-		<center>
-		<span style="color:blue">
-<h1>Universidad Nacional de Chimborazo</h1>
+def conectado(client, userdata, flags, rc):
+    print("Connected with result code "+str(rc))
 
-<h3>
-	
-	<li>Lady Medina</li>
-</h3>
-<img id="imagen" src="/static/images/robot.jpg" alt="user">
-<h1>Sensor1:</h1><h1 id="sensor">--</h1>
-<h1>Sensor2:</h1><h1 id="sensor1">--</h1>
-<h1>Historial:</h1><h1 id="sensor2">--</h1>
+    client.subscribe("lady.medina1998@gmail.com/t1")
 
-<button id = 'LED1On'type="button" onclick="LED1_On();">
-Boton 1</button>
-<button id = 'LED1Off' type="button" onclick="LED1_Off();">
-Boton 2</button>
-<button id = 'LED1_On' type="button" onclick="LED2_On();">
-	Boton 3</button>
+def nuevoMensaje(client, userdata, msg):
+    print(msg.topic+" "+str(msg.payload))
 
-<script>
-/*
-function LED1_On() {
-	alert("led on");
-	console.log("led on");
-  
-}
-function LED1_Off(){
-	alert("led off");
-	console.log("led off");
-}
+    mensaje=msg.payload.decode('utf-8')
+    if mensaje=='ON':
+        print('ON')
+        a = 1
+    else:
+           print('ON')
+           a = 0
 
-*/
-</script>
-<script src="/static/js/index.js"></script>
-</body>
-</html>
+    if mensaje=='OFF':
+        print('OFF')
+        b=1
+    else:
+            b=0
+
+client= mqtt.Client()  
+client.username_pw_set('lady.medina1998@gmail.com', password='0986653890lady')
+client.on_connect = conectado
+client.on_message = nuevoMensaje
+
+client.connect("maqiatto.com", 1883, 60)
+
+def leerSensor1():
+    return random.randint(0,1)
+def leerSensor2():
+    return random.randint(0,1)
+
+while 1:
+    time.sleep(1)
+    valor1=leerSensor1()
+    valor2=leerSensor2()
+    sensor1=open('sensor1.txt','a')
+    sensor1.write(str(valor1)+' \n')
+    sensor2=open('sensor1.txt','a')
+    sensor2.write(str(valor2)+' \n')
+    
+    if a==1:
+        sensor1=open('sensor1.txt','r')
+        valorSensor1=sensor1=sensor1.readlines()
+        client.publish('lady.medina1998@gmail.com/t2',str(valor1)+'-'+str(valor2)+'-'+str(valorSensor1))
+
+
+    elif b==1:
+        sensor1=open('sensor2.txt','r')
+        valorSensor2=sensor1=sensor1.readlines()
+        client.publish('lady.medina1998@gmail.com/t2',str(valor1)+'-'+str(valor2)+'-'+str(valorSensor2))
+        
+
+    else:
+          client.publish('lady.medina1998@gmail.com/t2',str(valor1)+'-'+str(valor2))
+    client.loop()
+   
